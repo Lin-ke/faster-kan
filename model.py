@@ -15,3 +15,24 @@ class MLP(nn.Module):
             for l in layer:
                 x = l(x)
         return self.lin(x)
+
+import torch
+import torch.nn as nn
+
+class FocalLoss(nn.Module):
+    def __init__(self, gamma=2, alpha=2):
+        super(FocalLoss, self).__init__()
+        self.gamma = gamma
+        self.alpha = alpha
+
+    def forward(self, inputs, targets):
+        # 计算交叉熵损失
+        bce_loss = nn.BCELoss(reduction='none')(inputs, targets)
+
+        # 计算调节因子
+        pt = torch.exp(-bce_loss)
+        focal_weight = (1 - pt) ** self.gamma
+
+        # 计算 Focal Loss
+        loss = self.alpha * focal_weight * bce_loss
+        return loss.mean()
